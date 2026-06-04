@@ -1,0 +1,27 @@
+{
+  "name": "mastra-signals-demo",
+  "version": "1.0.0",
+  "description": "A demo of Mastra signals feature for beginners",
+  "main": "signals-demo.ts",
+  "scripts": {
+    "start": "bun run signals-demo.ts",
+    "dev": "bun run signals-demo.ts"
+  },
+  "keywords": [
+    "mastra",
+    "signals",
+    "ai",
+    "agents",
+    "demo"
+  ],
+  "author": "Mastra Signals Demo",
+  "license": "MIT",
+  "dependencies": {
+    "@mastra/core": "^0.3.0",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.0.0",
+    "typescript": "^5.0.0"
+  }
+}
