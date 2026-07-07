@@ -1,24 +1,43 @@
 import { researchCoordinator } from './orchestrator'
+import { hybridCoordinator } from './hybrid-orchestrator'
 
 async function main() {
   const topic = 'renewable energy technologies'
-  console.log(`\n╔══════════════════════════════════════╗`)
-  console.log(`║  Research Coordinator — Hub & Spoke  ║`)
-  console.log(`╚══════════════════════════════════════╝`)
-  console.log(`\n📋 Topic: "${topic}"\n`)
 
-  const { report, subtopics, coverage, iterations } = await researchCoordinator(topic)
+  if (process.env.HYBRID === '1') {
+    console.log(`\n╔══════════════════════════════════════╗`)
+    console.log(`║  Hybrid Anthropic↔Mastra Pipeline    ║`)
+    console.log(`╚══════════════════════════════════════╝`)
+    console.log(`\n📋 Topic: "${topic}"\n`)
 
-  console.log(`\n${'═'.repeat(60)}`)
-  console.log(`📝 FINAL REPORT\n`)
-  console.log(report)
-  console.log(`\n${'═'.repeat(60)}`)
-  console.log(`\n📊 Summary:`)
-  console.log(`  Subtopics: ${subtopics.length}`)
-  console.log(`  Covered:   ${coverage.covered.length}`)
-  console.log(`  Partial:   ${coverage.partiallyCovered.length}`)
-  console.log(`  Missing:   ${coverage.missing.length}`)
-  console.log(`  Refinements: ${iterations}`)
+    const { report, findings, forkAttempted } = await hybridCoordinator(topic)
+
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`📝 FINAL REPORT\n`)
+    console.log(report)
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`\n📊 Summary:`)
+    console.log(`  Findings: ${findings.length}`)
+    console.log(`  Fork attempted: ${forkAttempted}`)
+  } else {
+    console.log(`\n╔══════════════════════════════════════╗`)
+    console.log(`║  Research Coordinator — Hub & Spoke  ║`)
+    console.log(`╚══════════════════════════════════════╝`)
+    console.log(`\n📋 Topic: "${topic}"\n`)
+
+    const { report, subtopics, coverage, iterations } = await researchCoordinator(topic)
+
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`📝 FINAL REPORT\n`)
+    console.log(report)
+    console.log(`\n${'═'.repeat(60)}`)
+    console.log(`\n📊 Summary:`)
+    console.log(`  Subtopics: ${subtopics.length}`)
+    console.log(`  Covered:   ${coverage.covered.length}`)
+    console.log(`  Partial:   ${coverage.partiallyCovered.length}`)
+    console.log(`  Missing:   ${coverage.missing.length}`)
+    console.log(`  Refinements: ${iterations}`)
+  }
 }
 
 main()

@@ -4,6 +4,7 @@ import { LibSQLStore } from '@mastra/libsql'
 import { researchAgent } from './research-agent'
 import { writingAgent } from './writing-agent'
 import { taskCompleteScorer } from '../scorers/task-complete-scorer'
+import { MODELS } from '../models'
 
 export const supervisorAgent = new Agent({
   id: 'supervisor-agent',
@@ -28,7 +29,7 @@ Success criteria:
 - Information is accurate and well-sourced
 - Final output is well-formatted and complete
 - If anything is missing or uncertain, continue gathering information`,
-  model: 'ollama-cloud/nemotron-3-super',
+  model: MODELS.supervisor,
   agents: {
     researchAgent,
     writingAgent,
