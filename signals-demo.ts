@@ -1,5 +1,4 @@
-import { Agent } from '@mastra/core/agent';
-import { OpenAI } from 'openai';
+import { Agent } from '@mastra/core/agent'
 
 // Mastra Signals Demo
 // This demo shows:
@@ -8,95 +7,86 @@ import { OpenAI } from 'openai';
 // 3. queueMessage() - Send messages for processing in the next turn
 // 4. sendSignal() - Send system-level signals/notifications
 
-console.log('Mastra Signals Demo');
-console.log('====================\n');
+console.log('Mastra Signals Demo')
+console.log('====================\n')
 
 async function runDemo() {
-  let subscription = null;
-  
+  let subscription: Awaited<ReturnType<Agent['subscribeToThread']>> | null = null
+
   try {
-    // Initialize OpenAI model (will need API key)
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || 'demo-key-for-local-testing'
-    });
-    
-    // Create a simple agent
+    // Create a simple agent using a model string (not openai.chat())
     const agent = new Agent({
       name: 'Signals Demo Agent',
       id: 'signals-demo-agent',
-      model: openai.chat('gpt-3.5-turbo'),
+      model: 'openai/gpt-4o-mini',
       instructions: 'You are a helpful assistant that responds concisely to user messages.',
-    });
-    
-    console.log('✓ Agent created successfully\n');
-    
+    })
+
+    console.log('✓ Agent created successfully\n')
+
     // Define thread and resource IDs
-    const resourceId = 'user_123';
-    const threadId = 'thread_456';
-    
+    const resourceId = 'user_123'
+    const threadId = 'thread_456'
+
     // Subscribe to thread for receiving responses
-    console.log('📡 Subscribing to thread...');
+    console.log('📡 Subscribing to thread...')
     subscription = await agent.subscribeToThread({
       resourceId,
       threadId,
-    });
-    console.log('✓ Subscribed to thread\n');
-    
-    // Send an immediate message
-    console.log('📤 Sending immediate message...');
-    agent.sendMessage('Hello, how are you?', {
+    })
+    console.log('✓ Subscribed to thread\n')
+
+    // Send an immediate message — signature: sendMessage(message, target)
+    console.log('📤 Sending immediate message...')
+    await agent.sendMessage('Hello, how are you?', {
       resourceId,
       threadId,
-    });
-    console.log('✓ Immediate message sent\n');
-    
-    // Queue a message for next turn
-    console.log('📋 Queueing message for next turn...');
-    agent.queueMessage('This is a queued message that should appear after the immediate one is processed.', {
-      resourceId,
-      threadId,
-    });
-    console.log('✓ Queued message sent\n');
-    
-    // Send a system signal
-    console.log('🔔 Sending system signal...');
-    agent.sendSignal(
-      {
-        type: 'notification',
-        contents: 'System notification: Demo is running successfully.',
-      },
-      {
-        resourceId,
-        threadId,
-      }
-    );
-    console.log('✓ System signal sent\n');
-    
-    // Listen for responses
-    console.log('👂 Waiting for responses...\n');
-    let messageCount = 0;
+    })
+    console.log('✓ Immediate message sent\n')
+
+    // Queue a message for next turn — signature: queueMessage(message, target)
+    console.log('📋 Queueing message for next turn...')
+    await agent.queueMessage(
+      'This is a queued message that should appear after the immediate one is processed.',
+      { resourceId, threadId },
+    )
+    console.log('✓ Queued message sent\n')
+
+    // Send a system signal — signature: sendSignal(signal, target)
+    console.log('🔔 Sending system signal...')
+    await agent.sendSignal(
+      { type: 'user-message', contents: 'System notification: Demo is running successfully.' },
+      { resourceId, threadId },
+    )
+    console.log('✓ System signal sent\n')
+
+    // Listen for responses — iterate over stream chunks, pick out text-delta
+    console.log('👂 Waiting for responses...\n')
+    let messageCount = 0
     for await (const chunk of subscription.stream) {
-      process.stdout.write(chunk);
-      messageCount++;
-      
+      if (chunk.type === 'text-delta') {
+        process.stdout.write(chunk.payload.text)
+      }
+      messageCount++
+
       // Stop after receiving responses to avoid infinite loop
-      if (messageCount > 15) break;
+      if (messageCount > 15) break
     }
-    
-    console.log('\n\n✓ Demo completed successfully');
+
+    console.log('\n\n✓ Demo completed successfully')
   } catch (error) {
-    console.error('\n✗ Error in demo:', error);
+    console.error('\n✗ Error in demo:', error)
   } finally {
     // Clean up subscription
     if (subscription) {
       try {
-        subscription.unsubscribe();
-        console.log('✓ Subscription cleaned up');
+        subscription.unsubscribe()
+        console.log('✓ Subscription cleaned up')
       } catch (cleanupError) {
-        console.error('✗ Error during cleanup:', cleanupError);
+        console.error('✗ Error during cleanup:', cleanupError)
       }
     }
   }
 }
 
-runDemo().catch(console.error);
+runDemo().catch(console.error)
