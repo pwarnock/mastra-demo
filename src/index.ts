@@ -2,7 +2,8 @@ import { researchCoordinator } from './orchestrator'
 import { hybridCoordinator } from './hybrid-orchestrator'
 
 async function main() {
-  const topic = 'renewable energy technologies'
+  const topicArg = process.argv[2] === '--topic' ? process.argv[3] : process.argv[2]
+  const topic = topicArg ?? 'renewable energy technologies'
 
   if (process.env.HYBRID === '1') {
     console.log(`\n╔══════════════════════════════════════╗`)
