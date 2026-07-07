@@ -1,0 +1,95 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.43.8.12551",
+      "templateHash": "13187878738494498951"
+    }
+  },
+  "parameters": {
+    "accountName": {
+      "type": "string",
+      "defaultValue": "ai-foundry-platform-pw",
+      "metadata": {
+        "description": "Name of the existing Azure AI Services / Foundry resource that will host the deployment."
+      }
+    },
+    "deploymentName": {
+      "type": "string",
+      "defaultValue": "kimi-k2-6",
+      "metadata": {
+        "description": "Deployment name used by clients when they call the model."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "defaultValue": "Kimi-K2.6",
+      "metadata": {
+        "description": "Model name from your catalog. Default avoids deprecated Kimi-K2-Thinking."
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "defaultValue": "2026-04-20",
+      "metadata": {
+        "description": "Catalog version for the selected model."
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "GlobalStandard",
+      "allowedValues": [
+        "GlobalStandard"
+      ],
+      "metadata": {
+        "description": "Deployment SKU name exposed for this model in the current catalog."
+      }
+    },
+    "capacity": {
+      "type": "int",
+      "defaultValue": 500,
+      "minValue": 1,
+      "metadata": {
+        "description": "Quota capacity to assign to the deployment. The current catalog default for Kimi-K2.6 is 500."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2024-04-01-preview",
+      "name": "[format('{0}/{1}', parameters('accountName'), parameters('deploymentName'))]",
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('capacity')]"
+      },
+      "properties": {
+        "model": {
+          "format": "MoonshotAI",
+          "name": "[parameters('modelName')]",
+          "version": "[parameters('modelVersion')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "deploymentResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('accountName'), parameters('deploymentName'))]"
+    },
+    "model": {
+      "type": "string",
+      "value": "[parameters('deploymentName')]"
+    },
+    "openAiCompatibleBaseUrl": {
+      "type": "string",
+      "value": "[format('https://{0}.openai.azure.com/openai/v1/', parameters('accountName'))]"
+    },
+    "foundryModelsBaseUrl": {
+      "type": "string",
+      "value": "[format('https://{0}.services.ai.azure.com/models', parameters('accountName'))]"
+    }
+  }
+}
