@@ -56,19 +56,22 @@ export async function hybridCoordinator(topic: string) {
   console.log(`\n🔬 Hybrid coordinator: "${topic}"`)
 
   const sdkTimeout = 60_000
-  const sdkRace = Promise.race([
-    docAnalysisSDKAgent.generate(
-      `Analyze documents on "${topic}". For each finding, return a JSON array with objects containing: claim, source_url (use "https://example.com/doc"), document_name, page_number, confidence. Use the read_page tool to read each page (1-6) and extract findings. Return ONLY the JSON array, no markdown.`,
-    ),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), sdkTimeout)),
-  ])
+  const sdkPromise = docAnalysisSDKAgent.generate(
+    `Analyze documents on "${topic}". For each finding, return a JSON array with objects containing: claim, source_url (use "https://example.com/doc"), document_name, page_number, confidence. Use the read_page tool to read each page (1-6) and extract findings. Return ONLY the JSON array, no markdown.`,
+  )
 
-  console.log('📚 Spawning web search + document analysis in parallel...')
+  // Small stagger avoids race at subprocess spawn
+  await new Promise(r => setTimeout(r, 500))
+
+  console.log('📚 Spawning web search + document analysis...')
   const [webText, sdkResult] = await Promise.all([
     webSearchAgent.generate(
       `Search for information on "${topic}". Return each finding with source URL and title.`,
     ),
-    sdkRace.catch((e) => {
+    Promise.race([
+      sdkPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), sdkTimeout)),
+    ]).catch((e) => {
       console.warn('SDK agent failed (non-blocking):', e.message)
       return null
     }),
