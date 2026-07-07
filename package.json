@@ -5,7 +5,8 @@
   "main": "signals-demo.ts",
   "scripts": {
     "start": "bun run signals-demo.ts",
-    "dev": "bun run signals-demo.ts"
+    "dev": "bun run signals-demo.ts",
+    "test": "bun test --timeout 300000"
   },
   "keywords": [
     "mastra",
@@ -17,11 +18,15 @@
   "author": "Mastra Signals Demo",
   "license": "MIT",
   "dependencies": {
-    "@mastra/core": "^0.3.0",
-    "openai": "^4.0.0"
+    "@mastra/core": "^1.50.0",
+    "@mastra/evals": "^1.5.1",
+    "@mastra/libsql": "^1.15.1",
+    "@mastra/memory": "^1.22.1",
+    "openai": "^4.104.0"
   },
   "devDependencies": {
-    "bun-types": "^1.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^26.1.0",
+    "bun-types": "^1.3.14",
+    "typescript": "^5.9.3"
   }
 }
