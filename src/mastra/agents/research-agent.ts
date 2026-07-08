@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent'
+import { MODELS } from '../models'
 
 export const researchAgent = new Agent({
   id: 'research-agent',
@@ -11,5 +12,5 @@ export const researchAgent = new Agent({
     'You are a research specialist. When given a topic, gather key facts, ' +
     'statistics, and information. Present findings as clear bullet points. ' +
     'Include sources when possible. Focus on accuracy and completeness.',
-  model: 'ollama-cloud/gpt-oss:20b-cloud',
+  model: MODELS.research,
 })

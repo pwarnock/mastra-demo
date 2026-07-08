@@ -1,4 +1,5 @@
 import { Agent } from '@mastra/core/agent'
+import { MODELS } from '../models'
 
 export const writingAgent = new Agent({
   id: 'writing-agent',
@@ -12,5 +13,5 @@ export const writingAgent = new Agent({
     'well-written articles. Use complete paragraphs, clear structure, and ' +
     'engaging language. Maintain a professional yet accessible tone. ' +
     'Ensure the content flows naturally from introduction to conclusion.',
-  model: 'ollama-cloud/minimax-m3:cloud',
+  model: MODELS.writing,
 })
