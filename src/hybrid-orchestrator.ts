@@ -4,6 +4,7 @@ import { createForkedDocAgent } from './mastra/agents/document-analysis-forked-a
 import { extractionAgent } from './mastra/agents/extraction-agent'
 import { synthesisAgent } from './mastra/agents/synthesis-agent'
 import { DOCUMENT } from './mastra/tools/fixtures'
+import { assertAttribution } from './mastra/lib/attribution'
 import type { Finding, ReportCitation } from './mastra/types/finding'
 
 async function normalizeToFindings(text: string, retrievedBy: string): Promise<Finding[]> {
@@ -36,43 +37,40 @@ function fixtureDocFindings(): Finding[] {
   }))
 }
 
-function verifyAttribution(findings: Finding[], report: ReportCitation[]) {
-  const findingMap = new Map(
-    findings.map(f => [`${f.source_url}|${f.page_number}`, f]),
-  )
-  for (const item of report) {
-    for (const c of item.citations) {
-      const key = `${c.source_url}|${c.page_number}`
-      if (!findingMap.has(key)) {
-        throw new Error(
-          `Orphaned citation: "${c.source_url}" p.${c.page_number} not in findings`,
-        )
-      }
-    }
-  }
-}
-
 export async function hybridCoordinator(topic: string) {
   console.log(`\n🔬 Hybrid coordinator: "${topic}"`)
 
   const sdkTimeout = 60_000
-  const sdkPromise = docAnalysisSDKAgent.generate(
-    `Analyze documents on "${topic}". For each finding, return a JSON array with objects containing: claim, source_url (use "https://example.com/doc"), document_name, page_number, confidence. Use the read_page tool to read each page (1-6) and extract findings. Return ONLY the JSON array, no markdown.`,
-  )
-
-  // Small stagger avoids race at subprocess spawn
-  await new Promise(r => setTimeout(r, 500))
 
   console.log('📚 Spawning web search + document analysis...')
-  const [webText, sdkResult] = await Promise.all([
+
+  async function runSdk() {
+    return Promise.race([
+      docAnalysisSDKAgent.generate(
+        `Analyze documents on "${topic}". For each finding, return a JSON array with objects containing: claim, source_url (use "https://example.com/doc"), document_name, page_number, confidence. Use the read_page tool to read each page (1-6) and extract findings. Return ONLY the JSON array, no markdown.`,
+      ),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), sdkTimeout)),
+    ])
+  }
+
+  const sdkPromise = runSdk()
+
+  // Defer web spawn to next microtask so SDK init runs first (machine-independent)
+  const webPromise = Promise.resolve().then(() =>
     webSearchAgent.generate(
       `Search for information on "${topic}". Return each finding with source URL and title.`,
     ),
-    Promise.race([
-      sdkPromise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('SDK timeout')), sdkTimeout)),
-    ]).catch((e) => {
-      console.warn('SDK agent failed (non-blocking):', e.message)
+  )
+
+  const [webText, sdkResult] = await Promise.all([
+    webPromise,
+    sdkPromise.catch((e: unknown) => {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.warn('SDK agent failed on first attempt, retrying:', msg)
+      return runSdk()
+    }).catch((e: unknown) => {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.warn('SDK agent failed (non-blocking):', msg)
       return null
     }),
   ])
@@ -125,7 +123,8 @@ export async function hybridCoordinator(topic: string) {
     } catch { return [] }
   })() as ReportCitation[]
 
-  verifyAttribution(findings, report)
+  // Default non-strict: orphan-only check, preserves existing hybrid.test.ts behavior.
+  assertAttribution(findings, report)
   console.log('✅ Attribution verified: zero orphaned citations')
 
   return { report, findings, forkAttempted, forkResult, sdkUsedFallback: sdkResult === null }

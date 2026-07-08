@@ -6,8 +6,9 @@
   "scripts": {
     "start": "bun run signals-demo.ts",
     "dev": "bun run signals-demo.ts",
-    "hybrid": "ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama bun run src/index.ts",
-    "test": "ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama bun test --timeout 300000 --verbose"
+    "hybrid": "ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_MODEL=glm-5.2:cloud MODE=hybrid bun run src/index.ts",
+    "native": "ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_MODEL=glm-5.2:cloud MODE=native bun run src/index.ts",
+    "test": "ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_MODEL=glm-5.2:cloud bun test --timeout 300000 --verbose"
   },
   "keywords": [
     "mastra",

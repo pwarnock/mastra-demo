@@ -1,9 +1,13 @@
 /**
- * Central model registry.
+ * Central model registry for Mastra-native agents.
  *
- * Two naming conventions coexist:
- * - "ollama-cloud/*" — Mastra native agents (provider strips prefix before Ollama API)
- * - bare names — Claude SDK bridge agents (passes directly to Ollama /v1/messages)
+ * Mastra native agents use "ollama-cloud/*" names (the provider strips the
+ * prefix before the Ollama API call).
+ *
+ * Claude SDK bridge agents (ClaudeSDKAgent / native coordinator) no longer
+ * read from this registry — they take their model from the `ANTHROPIC_MODEL`
+ * env var (bare name, hits Ollama /v1/messages directly), so they can run
+ * against Ollama OR real Anthropic without code changes.
  *
  * Keep this file in sync with `ollama list` or `curl localhost:11434/v1/models`.
  */
@@ -15,7 +19,4 @@ export const MODELS = {
   research: 'ollama-cloud/minimax-m3:cloud',
   writing: 'ollama-cloud/minimax-m3:cloud',
   supervisor: 'ollama-cloud/minimax-m3:cloud',
-
-  // Claude SDK bridge agents (bare name, hits Ollama directly)
-  sdk: 'qwen3.5:cloud',
 } as const
